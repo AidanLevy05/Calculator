@@ -8,6 +8,9 @@
 #include <ctime>
 #include <cstdlib>
 #include <cmath>
+#include "sine.h"
+#include "cosine.h"
+#include "tan.h"
 using namespace std;
 
 #endif

@@ -37,7 +37,6 @@ private:
     void destroyTree(TreeNode*&);
     double evaluateTree(TreeNode*);
     queue<string> infixToPostfix(const string&);
-    int precedence(char op);
 
     void inorder(TreeNode*);
     void preorder(TreeNode*);
@@ -56,4 +55,4 @@ public:
     void postorder();
 };
 
-#endif
+#endif // EXPRESSIONTREE_H

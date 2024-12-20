@@ -7,10 +7,11 @@ Creation Date: December 18th, 2024
 Description: 
 
 This program uses the ExpressionTree.h file to
-evaluate mathematical expressions. Added 
-functionality:
+evaluate mathematical expressions. 
 
-e p
+Added functionality:
+
+e p sin() cos() tan();
 
 As of right now, the program 
 can handle the following
@@ -30,6 +31,7 @@ arithmetic operators:
 #include <ctime>
 #include <cstdlib>
 #include "ExpressionTree.h"
+#include "sine.h"
 using namespace std;
 
 void help();
@@ -45,7 +47,6 @@ int main() {
     cout << "Welcome to Aidan's Expression Tree!" << endl;
     cout << "Enter 'q' or 'quit' to quit." << endl;
     cout << "Enter 'h' or 'help' for help." << endl;
-    cout << "Enter 'A' to use the previous result." << endl;
 
     do {
 
@@ -100,4 +101,6 @@ void help() {
     cout << "\t+ - * / ^ %" << endl;
     cout << "Supported transcedental numbers:" << endl;
     cout << "\te p" << endl;
+    cout << "Supported functions:" << endl;
+    cout << "\tsin() cos() tan();" << endl;
 }

@@ -21,6 +21,25 @@ Description: Destroys the tree from the root
 void ExpressionTree::clear() { destroyTree(root); }
 
 /*
+isOperator()
+Returns true if a valid operator
+*/
+bool isOperator(char c) {
+    return c=='+'||c=='-'||c=='*'||c=='/'||c=='^'||c=='%';
+}
+
+/*
+precedence()
+Description: Returns the precedence of operators
+*/
+int precedence(char op) {
+    if (op == '+' || op == '-') return 1;
+    if (op == '*' || op == '/' || op == '%') return 2;
+    if (op == '^') return 3;
+    return 0;
+}
+
+/*
 destroyTree()
 Description: Recursively deletes nodes
 */
@@ -58,8 +77,59 @@ void ExpressionTree::buildFromInfix(const string& infix) {
         else if (token == "e") {
             treeStack.push(new TreeNode(2.7182818284));
         }
+        // If the token is 'p', use the transcedental number pi.
+        else if (token == "p") {
+            treeStack.push(new TreeNode(3.1415926535));
+        }
+        // If the token is "sin", use sin operator
+        else if (token == "sin") {
+
+            if (treeStack.empty())
+                throw string("Error: Invalid syntax for 'sin'");
+
+            TreeNode *operand = treeStack.top();
+            treeStack.pop();
+
+            TreeNode *sinNode = new TreeNode('s');
+            sinNode->left = operand;
+            sinNode->right = nullptr;
+
+            treeStack.push(sinNode);
+        }
+        // If the token is "cos", use cos operator
+        else if (token == "cos") {
+            if (treeStack.empty())
+                throw string("Error: Invalid syntax for 'cos'");
+
+            TreeNode *operand = treeStack.top();
+            treeStack.pop();
+
+            TreeNode *cosNode = new TreeNode('c');
+            cosNode->left = operand;
+            cosNode->right = nullptr;
+
+            treeStack.push(cosNode);
+        }
+        // If the token is "tan", use tan operator
+        else if (token == "tan") {
+            if (treeStack.empty())
+                throw string("Error: Invalid syntax for 'tan'");
+
+            TreeNode *operand = treeStack.top();
+            treeStack.pop();
+
+            TreeNode *tanNode = new TreeNode('t');
+            tanNode->left = operand;
+            tanNode->right = nullptr;
+
+            treeStack.push(tanNode);
+        }
         // If the token is an operator, create a parent node
         else {
+
+            if (treeStack.size() < 2)
+                throw string("Error: Invalid syntax for operator.");
+
             TreeNode* right = treeStack.top();
             treeStack.pop();
             TreeNode* left = treeStack.top();
@@ -85,71 +155,70 @@ void ExpressionTree::buildFromInfix(const string& infix) {
 infixToPostfix()
 Description: Converts infix expr to postfix expr
 */
-queue<string> ExpressionTree::infixToPostfix(const string& infix) {
-    stack<char> operators;
-    queue<string> output;
-    string number;
+queue<string> ExpressionTree::infixToPostfix(const string& expression) {
+    stack<string> operatorStack;
+    queue<string> postfixQueue;
+    string token;
 
-    auto pushNumber = [&]() {
-        if (!number.empty()) {
-            output.push(number);
-            number.clear();
-        }
-    };
+    for (size_t i = 0; i < expression.length(); ++i) {
+        char c = expression[i];
 
-    for (size_t i = 0; i < infix.size(); ++i) {
-        char c = infix[i];
+        if (isspace(c)) continue;
 
         if (isdigit(c) || c == '.') {
-            number += c;
-        } else {
-            pushNumber();
-
-            if (c == 'A') {
-                output.push(to_string(prevResult));
-            } else if (c == 'e') {
-                output.push("2.7182818284");
-            } else if (c == 'p') {
-                output.push("3.1415926535");
-            } else if (c == '(') {
-                operators.push(c);
-            } else if (c == ')') {
-                while (!operators.empty() && operators.top() != '(') {
-                    output.push(string(1, operators.top()));
-                    operators.pop();
-                }
-                operators.pop();
-            } else if (c == '-' && (i == 0 || infix[i - 1] == '(' || infix[i - 1] == '+' || infix[i - 1] == '-' || infix[i - 1] == '*' || infix[i - 1] == '/')) {
-                number += c;
-            } else {
-                while (!operators.empty() && precedence(c) <= precedence(operators.top())) {
-                    output.push(string(1, operators.top()));
-                    operators.pop();
-                }
-                operators.push(c);
+            token.clear();
+            while (i < expression.length() && (isdigit(expression[i]) || expression[i] == '.')) {
+                token += expression[i++];
             }
+            --i;
+            postfixQueue.push(token);
+        } else if (isalpha(c)) {
+            token.clear();
+            while (i < expression.length() && isalpha(expression[i])) {
+                token += expression[i++];
+            }
+            --i;
+            if (token == "p") {
+                postfixQueue.push("p");
+            } else if (token == "e") {
+                postfixQueue.push("e");
+            } else {
+                operatorStack.push(token);
+            }
+        } else if (c == '(') {
+            operatorStack.push(string(1, c));
+        } else if (c == ')') {
+            while (!operatorStack.empty() && operatorStack.top() != "(") {
+                postfixQueue.push(operatorStack.top());
+                operatorStack.pop();
+            }
+            if (operatorStack.empty() || operatorStack.top() != "(") {
+                throw string("Error: Mismatched parentheses");
+            }
+            operatorStack.pop();
+
+            if (!operatorStack.empty() && isalpha(operatorStack.top()[0])) {
+                postfixQueue.push(operatorStack.top());
+                operatorStack.pop();
+            }
+        } else if (isOperator(c)) {
+            while (!operatorStack.empty() &&
+                   precedence(operatorStack.top()[0]) >= precedence(c)) {
+                postfixQueue.push(operatorStack.top());
+                operatorStack.pop();
+            }
+            operatorStack.push(string(1, c));
+        } else {
+            throw string("Error: Invalid character in expression");
         }
     }
 
-    pushNumber();
-
-    while (!operators.empty()) {
-        output.push(string(1, operators.top()));
-        operators.pop();
+    while (!operatorStack.empty()) {
+        postfixQueue.push(operatorStack.top());
+        operatorStack.pop();
     }
 
-    return output;
-}
-
-/*
-precedence()
-Description: Returns the precedence of operators
-*/
-int ExpressionTree::precedence(char op) {
-    if (op == '+' || op == '-') return 1;
-    if (op == '*' || op == '/' || op == '%') return 2;
-    if (op == '^') return 3;
-    return 0;
+    return postfixQueue;
 }
 
 /*
@@ -174,6 +243,12 @@ double ExpressionTree::evaluateTree(TreeNode *nodeptr) {
         return 0;
     if (nodeptr->op == '\0')
         return nodeptr->value;
+    if (nodeptr->op == 's')
+        return parallelSine(evaluateTree(nodeptr->left));
+    if (nodeptr->op == 'c')
+        return parallelCosine(evaluateTree(nodeptr->left));
+    if (nodeptr->op == 't')
+        return parallelTan(evaluateTree(nodeptr->left));
 
     // Recursive traversals to calculate left and right subtrees
     double leftVal = evaluateTree(nodeptr->left);
